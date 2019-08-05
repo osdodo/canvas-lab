@@ -1,0 +1,15 @@
+{
+    "devDependencies": {
+        "ts-loader": "^6.0.4",
+        "tslint": "^5.18.0",
+        "tslint-config-airbnb": "^5.11.1",
+        "typescript": "^3.5.3",
+        "uglifyjs-webpack-plugin": "^2.2.0",
+        "webpack": "^4.39.1",
+        "webpack-cli": "^3.3.6"
+    },
+    "scripts": {
+        "start": "webpack-dev-server --hot --inline --content-base ./dist",
+        "build": "webpack  --mode production"
+    }
+}
