@@ -2,6 +2,11 @@ import Ball from '../shape/Ball'
 import Line from '../shape/Line'
 import { randomNum, randomColor, angle2Radian } from '../lib/utils'
 
+interface ICanvasSize {
+    w: number,
+    h: number
+}
+
 let isStop = false
 
 export function StopFrame(bool: boolean): void {
@@ -71,7 +76,13 @@ function hitEffect(balls: Array<Ball>, lines: Array<Line>, bounce: number, sprin
     }
 }
 
-function moveBall(balls: Array<Ball>, xfriction: number, yfriction: number, bounce: number, g: number, width: number, height: number): void {
+function moveBall(
+    balls: Array<Ball>, 
+    xfriction: number, yfriction: number, 
+    bounce: number, g: number, 
+    canvasSize: ICanvasSize
+): void {
+    const { w, h } = canvasSize
     for (let i = 0, len = balls.length; i < len; i++) {
         //重力作用
         balls[i].vy += g
@@ -87,8 +98,8 @@ function moveBall(balls: Array<Ball>, xfriction: number, yfriction: number, boun
 
         //y方向速度作用&&落地处理
         balls[i].y += balls[i].vy
-        if (balls[i].y + balls[i].r >= height) {
-            balls[i].y = height - balls[i].r
+        if (balls[i].y + balls[i].r >= h) {
+            balls[i].y = h - balls[i].r
             balls[i].vy *= -1
         }
 
@@ -97,8 +108,8 @@ function moveBall(balls: Array<Ball>, xfriction: number, yfriction: number, boun
         if (balls[i].x - balls[i].r <= 0) {
             balls[i].x = balls[i].r
             balls[i].vx *= bounce
-        } else if (balls[i].x + balls[i].r >= width) {
-            balls[i].x = width - balls[i].r
+        } else if (balls[i].x + balls[i].r >= w) {
+            balls[i].x = w - balls[i].r
             balls[i].vx *= bounce
         }
     }
@@ -116,17 +127,13 @@ function renderBall(ctx: CanvasRenderingContext2D, balls: Array<Ball>): void {
     }
 }
 
-const requestAnimFrame: (callback: () => void) => void = (function () {
-    return window.requestAnimationFrame 
-        || (<any>window).webkitRequestAnimationFrame 
-        || (<any>window).mozRequestAnimationFrame 
-        || (<any>window).oRequestAnimationFrame 
-        || (<any>window).msRequestAnimationFrame
-})()
-
 export function SimulateBallDrop(canvas: HTMLCanvasElement): void {
     const W = canvas.width = 800
     const H = canvas.height = 600
+    const canvasSize: ICanvasSize = {
+        w: W,
+        h: H
+    }
     const ctx = <CanvasRenderingContext2D>canvas.getContext('2d')
     const g =  0.3
     const spring = 0.25
@@ -147,14 +154,22 @@ export function SimulateBallDrop(canvas: HTMLCanvasElement): void {
                 color: randomColor(),
             })
         )
-    } 
-    
+    }
+
+    const requestAnimFrame: (callback: () => void) => void = (() => {
+        return window.requestAnimationFrame 
+            || (<any>window).webkitRequestAnimationFrame 
+            || (<any>window).mozRequestAnimationFrame 
+            || (<any>window).oRequestAnimationFrame 
+            || (<any>window).msRequestAnimationFrame
+    })()
+
     const drawFrame = () => {
         if (isStop) return
         requestAnimFrame(drawFrame)
         ctx.clearRect(0, 0, W, H)
         hitEffect(balls, lines, bounce, spring)
-        moveBall(balls, xfriction, yfriction, bounce, g, W, H)
+        moveBall(balls, xfriction, yfriction, bounce, g, canvasSize)
         renderBall(ctx, balls)
         renderLine(ctx, lines)
     }

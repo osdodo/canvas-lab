@@ -2,19 +2,25 @@ import Ball from '../shape/Ball'
 import Line from '../shape/Line'
 import { randomNum, randomColor } from '../lib/utils'
 
+interface ICanvasSize {
+    w: number,
+    h: number
+}
+
 let isStop = false
 
 export function StopFrame(bool: boolean): void {
     isStop = bool
 }
 
-function init(n: number, width: number, height: number): Array<Ball> {
+function init(canvasSize: ICanvasSize): Array<Ball> {
+    const n = canvasSize.w * canvasSize.h / 5000
     const particles = []
     for (let i = 0; i < n; i++) {
         const size = randomNum([5, 15], false)
         particles.push(new Ball({
-            x: randomNum([0, width], false),
-            y: randomNum([0, height], false),
+            x: randomNum([0, canvasSize.w], false),
+            y: randomNum([0, canvasSize.h], false),
             r: size,
             m: size,
             vx: randomNum([-2, 2], false),
@@ -25,13 +31,13 @@ function init(n: number, width: number, height: number): Array<Ball> {
     return particles
 }
 
-function drawLine(ctx: any, b1: Ball, b2: Ball, dist: number, minDist: number): void {
+function drawConnectingLine(ctx: CanvasRenderingContext2D, b1: Ball, b2: Ball, dist: number, minDist: number): void {
     const line = new Line({
         x1: b1.x,
         y1: b1.y,
         x2: b2.x,
         y2: b2.y,
-        color: '#fff',
+        color: '#ddd',
         lineWidth: 2 * Math.max(0, (1 - dist / minDist)),
         alpha: Math.max(0, (1 - dist / minDist)),
     })
@@ -39,13 +45,14 @@ function drawLine(ctx: any, b1: Ball, b2: Ball, dist: number, minDist: number): 
 }
 
 
-function springEffect(ctx: any, b1: Ball, b2: Ball, spring: number, width: number, height: number): void {
+function springEffect(ctx: CanvasRenderingContext2D, b1: Ball, b2: Ball, spring: number, canvasSize: ICanvasSize): void {
+    const { w, h } = canvasSize
     let dx = b2.x - b1.x
     let dy = b2.y - b1.y
     let dist = Math.sqrt(dx ** 2 + dy ** 2)
-    let minDist = width > height ? width / 10 : height / 5
+    let minDist = w > h ? w / 10 : h / 5
     if (dist < minDist) {
-        drawLine(ctx, b1, b2, dist, minDist)
+        drawConnectingLine(ctx, b1, b2, dist, minDist)
         let ax = dx * spring
         let ay = dy * spring
         b1.vx += ax / b1.m
@@ -94,7 +101,8 @@ function ballHitEffect(b1: Ball, b2: Ball): void {
     }
 }
 
-function moveParticle(ctx: CanvasRenderingContext2D, particles: Array<Ball>, spring: number, width: number, height: number): void {
+function moveParticle(ctx: CanvasRenderingContext2D, particles: Array<Ball>, spring: number, canvasSize: ICanvasSize): void {
+    const { w, h } = canvasSize
     for (let i = 0, len = particles.length; i < len; i++) {
         const b1 = particles[i]
         b1.x += b1.vx
@@ -102,15 +110,15 @@ function moveParticle(ctx: CanvasRenderingContext2D, particles: Array<Ball>, spr
         
         for (let j = i + 1; j < len; j++) {
             const b2 = particles[j]
-            springEffect(ctx, b1, b2, spring, width, height)
+            springEffect(ctx, b1, b2, spring, canvasSize)
             ballHitEffect(b1, b2)
         }
 
-        if (b1.x - b1.r > width)  { b1.x = -b1.r }
-        else if (b1.x + b1.r < 0) { b1.x = width + b1.r }
+        if (b1.x - b1.r > w)  { b1.x = -b1.r }
+        else if (b1.x + b1.r < 0) { b1.x = w + b1.r }
 
-        if (b1.y - b1.r > height) { b1.y = -b1.r }
-        else if (b1.y + b1.r < 0) { b1.y = height + b1.r }
+        if (b1.y - b1.r > h) { b1.y = -b1.r }
+        else if (b1.y + b1.r < 0) { b1.y = h + b1.r }
     }
 }
 
@@ -120,33 +128,34 @@ function renderParticle(ctx: any, particles: Array<Ball>): void {
     }
 }
 
-const requestAnimFrame: (callback: () => void) => void = (function () {
-    return window.requestAnimationFrame 
-        || (<any>window).webkitRequestAnimationFrame 
-        || (<any>window).mozRequestAnimationFrame 
-        || (<any>window).oRequestAnimationFrame 
-        || (<any>window).msRequestAnimationFrame
-})()
-
 export function Gravitation(canvas: HTMLCanvasElement): void {
     const ctx = <CanvasRenderingContext2D>canvas.getContext('2d')
-    let W = 0
-    let H = 0
     const spring = 0.0001
     let particles: Array<Ball> = []
-
+    let canvasSize: ICanvasSize = {
+        w: 0,
+        h: 0
+    }
     window.onresize = () => {
-        W = canvas.width = window.innerWidth
-        H = canvas.height = window.innerHeight
-        particles = init(W * H / 5000, W, H)
+        canvasSize.w = canvas.width = window.innerWidth
+        canvasSize.h = canvas.height = window.innerHeight
+        particles = init(canvasSize)
     }
     (<any>window).onresize()
+
+    const requestAnimFrame: (callback: () => void) => void = (() => {
+        return window.requestAnimationFrame 
+            || (<any>window).webkitRequestAnimationFrame 
+            || (<any>window).mozRequestAnimationFrame 
+            || (<any>window).oRequestAnimationFrame 
+            || (<any>window).msRequestAnimationFrame
+    })()
 
     const drawFrame = () => {
         if (isStop) return
         requestAnimFrame(drawFrame)
-        ctx.clearRect(0, 0, W, H)
-        moveParticle(ctx, particles, spring, W, H)
+        ctx.clearRect(0, 0, canvasSize.w, canvasSize.h)
+        moveParticle(ctx, particles, spring, canvasSize)
         renderParticle(ctx, particles)
     }
 

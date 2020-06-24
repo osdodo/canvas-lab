@@ -13,7 +13,6 @@ const options = [
         text: '粒子引力',
         drawFn: Gravitation,
         stopFrameFn: GravitationStopFrame,
-        canvasBackground: '#000',
     }
 ]
 
@@ -36,9 +35,6 @@ const selectChange = (e: any) => {
 const createCanvas = (selectedIndex: number) => {  
     const canvas = <any>document.createElement('canvas')
     canvas.id = `canvas${selectedIndex}`
-    if (options[selectedIndex].canvasBackground) {
-        canvas.style = `background-color: ${options[selectedIndex].canvasBackground};`
-    }
     const select = document.getElementById('select')
     document.body.insertBefore(canvas, select)
     return canvas
