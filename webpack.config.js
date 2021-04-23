@@ -18,11 +18,10 @@ module.exports = {
         open: true,
         overlay: true,
     },
-    devtool: 'inline-source-map',
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/
             }
