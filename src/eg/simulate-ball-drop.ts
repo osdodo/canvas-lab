@@ -156,17 +156,9 @@ export function SimulateBallDrop(canvas: HTMLCanvasElement): void {
         )
     }
 
-    const requestAnimFrame: (callback: () => void) => void = (() => {
-        return window.requestAnimationFrame 
-            || (<any>window).webkitRequestAnimationFrame 
-            || (<any>window).mozRequestAnimationFrame 
-            || (<any>window).oRequestAnimationFrame 
-            || (<any>window).msRequestAnimationFrame
-    })()
-
     const drawFrame = () => {
         if (isStop) return
-        requestAnimFrame(drawFrame)
+        window.requestAnimationFrame(drawFrame)
         ctx.clearRect(0, 0, W, H)
         hitEffect(balls, lines, bounce, spring)
         moveBall(balls, xfriction, yfriction, bounce, g, canvasSize)

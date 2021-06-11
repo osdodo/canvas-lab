@@ -143,17 +143,9 @@ export function Gravitation(canvas: HTMLCanvasElement): void {
     }
     (<any>window).onresize()
 
-    const requestAnimFrame: (callback: () => void) => void = (() => {
-        return window.requestAnimationFrame 
-            || (<any>window).webkitRequestAnimationFrame 
-            || (<any>window).mozRequestAnimationFrame 
-            || (<any>window).oRequestAnimationFrame 
-            || (<any>window).msRequestAnimationFrame
-    })()
-
     const drawFrame = () => {
         if (isStop) return
-        requestAnimFrame(drawFrame)
+        window.requestAnimationFrame(drawFrame)
         ctx.clearRect(0, 0, canvasSize.w, canvasSize.h)
         moveParticle(ctx, particles, spring, canvasSize)
         renderParticle(ctx, particles)
