@@ -2,7 +2,11 @@
 
 ```bash
 # install all this dependencies.
-yarn
+pnpm i
 
 # run, default port: 8000
-yarn dev
+pnpm dev
+
+# build
+pnpm build
+```
