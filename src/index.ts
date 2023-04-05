@@ -1,58 +1,70 @@
-import { SimulateBallDrop, StopFrame as SimulateBallDropStopFrame } from './eg/simulate-ball-drop'
-import { Gravitation, StopFrame as GravitationStopFrame } from './eg/gravitation'
+import BallDropSimulation from './eg/ball-drop-simulation';
+import GravitationalSimulation from './eg/gravitational-simulation';
 
-const options = [
-    {
-        id: 0,
-        text: '模拟小球掉落',
-        drawFn: SimulateBallDrop,
-        stopFrameFn: SimulateBallDropStopFrame,
-    },
-    {
-        id: 1,
-        text: '粒子引力',
-        drawFn: Gravitation,
-        stopFrameFn: GravitationStopFrame,
-    }
-]
+const DEMOS: {
+  text: string;
+  class: any;
+  instance: null | BallDropSimulation | GravitationalSimulation;
+}[] = [
+  {
+    text: '小球掉落模拟',
+    class: BallDropSimulation,
+    instance: null,
+  },
+  {
+    text: '引力模拟',
+    class: GravitationalSimulation,
+    instance: null,
+  },
+];
 
-let currentSelectedIndex = 0
+let currentSelectedIndex = 0;
 
 const selectChange = (e: any) => {
-    const selectedIndex = e.target.selectedIndex
-    removeCanvas(currentSelectedIndex)
-    const canvas = createCanvas(selectedIndex)
-    options[selectedIndex].stopFrameFn && options[selectedIndex].stopFrameFn(false)
-    options[selectedIndex].drawFn(canvas)
-    currentSelectedIndex = selectedIndex
-    options.map(o => {
-        if (o.id !== selectedIndex) {
-            options[o.id].stopFrameFn && options[o.id].stopFrameFn(true)
-        }
-    })
-}
+  const selectedIndex = e.target.selectedIndex;
+  removeCanvas(currentSelectedIndex);
+  currentSelectedIndex = selectedIndex;
+  const canvas = createCanvas(selectedIndex);
+  const demo = DEMOS[selectedIndex];
+  const demoInstance = new demo.class({
+    canvas,
+  });
+  demo.instance = demoInstance;
+  demoInstance.run();
+  currentSelectedIndex = selectedIndex;
+};
 
-const createCanvas = (selectedIndex: number) => {  
-    const canvas = <any>document.createElement('canvas')
-    canvas.id = `canvas${selectedIndex}`
-    const select = document.getElementById('select')
-    document.body.insertBefore(canvas, select)
-    return canvas
-} 
+const createCanvas = (selectedIndex: number) => {
+  const canvas = document.createElement('canvas');
+  canvas.id = `canvas${selectedIndex}`;
+  const select = document.getElementById('select');
+  document.body.insertBefore(canvas, select);
+  return canvas;
+};
 
-const removeCanvas = (currentSelectedIndex: number) => {  
-    const canvas = <any>document.getElementById(`canvas${currentSelectedIndex}`)
-    document.body.removeChild(canvas)
-} 
+const removeCanvas = (index: number) => {
+  const demo = DEMOS[index];
+  if (demo.instance) {
+    demo.instance.destroy();
+    demo.instance = null;
+  }
+  const canvas = document.getElementById(`canvas${index}`);
+  canvas && document.body.removeChild(canvas);
+};
 
 (() => {
-    let select = document.createElement('select')
-    select.id = 'select'
-    select.onchange = selectChange
-    for (let i = 0; i < options.length; i++) {
-        select.options[i] = new Option(options[i].text, '')
-    }
-    document.body.appendChild(select)
-    const canvas = createCanvas(currentSelectedIndex)
-    options[currentSelectedIndex].drawFn(canvas)
-})()
+  const select = document.createElement('select');
+  select.id = 'select';
+  select.onchange = selectChange;
+  DEMOS.forEach((demo, i) => {
+    select.options[i] = new Option(demo.text, demo.text);
+  });
+  document.body.appendChild(select);
+  const canvas = createCanvas(currentSelectedIndex);
+  const demo = DEMOS[currentSelectedIndex];
+  const demoInstance = new demo.class({
+    canvas,
+  });
+  demo.instance = demoInstance;
+  demoInstance.run();
+})();
